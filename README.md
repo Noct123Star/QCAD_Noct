@@ -212,16 +212,3 @@ m_sFileName = tr("untitled.cad");
 setWindowTitle(tr("QCAD - %1").arg(m_sFileName));
 ```
 
-3.新建空文件
-
-```c++
-QFile file(m_sFileName);
-if (!file.exists()) {
-    if (!file.open(QIODevice::WriteOnly | QIODevice::Text)) {
-        qDebug() << "Failed to create empty CAD file.";
-        return;
-    }
-    file.close();
-}
-```
-
