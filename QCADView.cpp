@@ -125,7 +125,7 @@ void QCADView::clearList()
 			m_EntityList.removeOne(pEnt);
 			delete pEnt;
 			pEnt = nullptr;
-			qDebug() << "EntityList size--" << m_EntityList.size();
+			//qDebug() << "EntityList size--" << m_EntityList.size();
 		}
 	}
 	m_EntityList.clear();

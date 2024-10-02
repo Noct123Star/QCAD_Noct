@@ -871,13 +871,61 @@ void MainWindow::newFile()
 {
     //单文档吧
     //检查当前有没有文档，且发生更改？
+    if (!m_sFileName.isEmpty() && view->GetEntityList().size() != 0) {
+        QMessageBox::StandardButton ret;
+        ret = QMessageBox::warning(this, tr("QCAD"),
+            tr("The file has been changed.\n"
+                "Do you want to save?"),
+            QMessageBox::Save | QMessageBox::Discard | QMessageBox::Cancel);
+        switch (ret) {
+        case QMessageBox::Save:
+            saveFile(); // 调用保存函数
+            break;
+        case QMessageBox::Cancel:
+            return;
+        default: // Discard
+            break;
+        }
+    }
+
+    /*QFile file(m_sFileName);
+    if (!file.exists()) {
+        if (!file.open(QIODevice::WriteOnly | QIODevice::Text)) {
+            qDebug() << "Failed to create empty CAD file.";
+            return;
+        }
+        file.close();
+    }*/
+
     //清空内存
+    if (view->GetEntityList().size() != 0) {
+        view->clearList();
+        std::cout << "文档已经清空" << '\n';
+    }
     //设置文档名untitled.cad，标题改变
+    m_sFileName = tr("untitled.cad");
+    setWindowTitle(tr("QCAD - %1").arg(m_sFileName));
 }
 
 void MainWindow::openFile()
 {
     //检查当前有没有文档，且发生更改？
+    if (!m_sFileName.isEmpty() && view->GetEntityList().size() != 0) {
+    QMessageBox::StandardButton ret;
+    ret = QMessageBox::warning(this, tr("QCAD"),
+        tr("The file has been changed.\n"
+            "Do you want to save?"),
+        QMessageBox::Save | QMessageBox::Discard | QMessageBox::Cancel);
+    switch (ret) {
+    case QMessageBox::Save:
+        saveFile(); // 调用保存函数
+        break;
+    case QMessageBox::Cancel:
+        return;
+    default: // Discard
+        break;
+    }
+}
     //清空内存
     if (view->GetEntityList().size() != 0) {
         view->clearList();
@@ -932,9 +980,9 @@ void MainWindow::saveFile()
 {
     //检查文档改变，如果未改变，直接退出
     //检查文档名称，如果untitled，则提示输入文件名
-    if (m_sFileName == tr("untitled"))
+    if (m_sFileName == tr("untitled") || m_sFileName == tr("untitled.cad"))
     {
-        QString sName = QFileDialog::getSaveFileName(this, tr("Save Picture"), "", "CAD(*.cad)");
+        QString sName = QFileDialog::getSaveFileName(this, tr("Save File"), "", "CAD(*.cad)");
         if (sName.isEmpty())
         {
             return;
@@ -1035,7 +1083,7 @@ void MainWindow::saveFile()
 void MainWindow::saveAsFile()
 {
     //提示输入文件名
-    QString sName = QFileDialog::getSaveFileName(this, tr("Save Picture"), "", "CAD(*.cad)");
+    QString sName = QFileDialog::getSaveFileName(this, tr("Save Another"), "", "CAD(*.cad)");
     if (sName.isEmpty())
     {
         return;
