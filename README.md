@@ -15,7 +15,7 @@
 
 1.添加保存的代码：
 
-保存当前图元数量。针对EntityList中的每个图元，保存当前图元的类型EntityType，调用`MEntity`类的`Serialize(QDataStream& ar, bool bSave)`方法将EntityList中的各个图元对象串行化保存。由于使用 QDataStream 类，因为数据保存结果为二进制文件。
+保存当前图元数量。针对EntityList中的每个图元，保存当前图元的类型EntityType，调用`MEntity`类的`Serialize(QDataStream& ar, bool bSave)`方法将EntityList中的各个图元对象串行化保存。由于使用 QDataStream 类数据流，因而数据保存结果为二进制文件。
 
 ```c++
 void MainWindow::saveFile(){
@@ -55,7 +55,7 @@ void MainWindow::saveFile(){
 
 3.修改ENTITY.CPP中的`Serialize(QDataStream& ar, bool bSave)`代码：
 
-代码后端存在未初始化的变量被赋值的情况，直接调用会报错。所以将后段赋值操作置入反串行化的读取内容中。
+代码if-else执行后的代码存在未初始化的变量被赋值的情况，直接调用会报错。所以将后段的赋值操作的代码置入else(即反串行化的读取内容)中。
 
 ```c++
 void MEntity::Serialize(QDataStream& ar, bool bSave)
@@ -78,6 +78,8 @@ void MEntity::Serialize(QDataStream& ar, bool bSave)
 	}
 }
 ```
+
+*******
 
 ### 另存
 
@@ -122,6 +124,8 @@ void MainWindow::saveAsFile()
     return;
 }
 ```
+
+******
 
 ### 读取
 
@@ -177,6 +181,8 @@ void MainWindow::openFile()
 3.检查当前有没有文档，且发生更改
 
 参考"新建"中的相同内容
+
+****
 
 ### 新建
 
