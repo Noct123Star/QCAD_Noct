@@ -5,6 +5,8 @@
 #include "MCreateLine.h"
 #include "MSelectCmd.h"
 
+#include <QDebug>
+
 #include <QPainter>
 #include <QStatusBar>
 
@@ -112,6 +114,21 @@ void QCADView::mouseDoubleClickEvent(QMouseEvent* mouseEvent)
 void QCADView::addEntity(MEntity* pEnt)
 {
 	m_EntityList.push_back(pEnt);
+}
+
+void QCADView::clearList()
+{
+	foreach(MEntity * pEnt, m_EntityList)
+	{
+		if (pEnt)
+		{
+			m_EntityList.removeOne(pEnt);
+			delete pEnt;
+			pEnt = nullptr;
+			qDebug() << "EntityList size--" << m_EntityList.size();
+		}
+	}
+	m_EntityList.clear();
 }
 
 void QCADView::drawLine()

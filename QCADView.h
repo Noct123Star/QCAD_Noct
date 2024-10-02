@@ -26,6 +26,7 @@ protected:
 
 public:
     void addEntity(MEntity* pEnt);
+    void clearList();
     void drawLine();
     void selectEntity();
 

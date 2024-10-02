@@ -11,6 +11,10 @@
 
 #include <QtWidgets>
 
+#include <iostream>
+
+#include "ENTITY.H"
+
 MainWindow* g_pMainWnd;
 const int InsertTextButton = 10;
 
@@ -875,6 +879,10 @@ void MainWindow::openFile()
 {
     //检查当前有没有文档，且发生更改？
     //清空内存
+    if (view->GetEntityList().size() != 0) {
+        view->clearList();
+        std::cout << "文档已经清空" << '\n';
+    }
     //读入文档内容
     QString sName = QFileDialog::getOpenFileName();
     if (sName.isEmpty())
@@ -891,7 +899,27 @@ void MainWindow::openFile()
         return;
     }
     QDataStream in(&file);
-    scene->Read(in);
+    // 上为原文件内内容
+    //scene->Read(in);
+    int nCount;
+    in >> nCount;
+
+    for (int i = 0; i < nCount; i++) {
+        int EnType;
+        MLine* line;
+        in >> EnType;
+        switch (EnType)
+        {
+        case EEntityType::etLine:
+            line = new MLine();
+            line->Serialize(in, false);
+            view->addEntity(line);
+            break;
+        }
+
+    }
+    std::cout << "文档读取成功." << '\n';
+    // 下为原文件内内容
     file.close();
 
     //更改文档名称，标题改变
@@ -906,7 +934,7 @@ void MainWindow::saveFile()
     //检查文档名称，如果untitled，则提示输入文件名
     if (m_sFileName == tr("untitled"))
     {
-        QString sName = QFileDialog::getSaveFileName();
+        QString sName = QFileDialog::getSaveFileName(this, tr("Save Picture"), "", "CAD(*.cad)");
         if (sName.isEmpty())
         {
             return;
@@ -921,7 +949,23 @@ void MainWindow::saveFile()
         return;
     }
     QDataStream out(&file);
-    scene->Save(out);
+    // 以下为修改内容
+   //scene->Save(out);
+    int EntityNum = view->GetEntityList().size();
+    out << EntityNum;
+    EEntityType EnType;
+    foreach(MEntity * pEnt, view->GetEntityList()) {
+        EnType = (EEntityType)pEnt->GetType();
+        out << EnType;
+        switch (EnType) {
+        case EEntityType::etLine:
+            MLine* line = (MLine*)pEnt;
+            line->Serialize(out, true);
+            break;
+        }
+    }
+    std::cout << "文档保存成功." << '\n';
+    // 以上为修改内容
     file.close();
     return;
 
@@ -990,7 +1034,38 @@ void MainWindow::saveFile()
 
 void MainWindow::saveAsFile()
 {
-
+    //提示输入文件名
+    QString sName = QFileDialog::getSaveFileName(this, tr("Save Picture"), "", "CAD(*.cad)");
+    if (sName.isEmpty())
+    {
+        return;
+    }
+    m_sFileName = sName;
+    //将内存内容保存到文档中
+    QFile file(m_sFileName);
+    if (!file.open(QIODevice::ReadWrite))
+    {
+        qDebug() << "open file failed";
+        return;
+    }
+    QDataStream out(&file);
+    //scene->Save(out);
+    int EntityNum = view->GetEntityList().size();
+    out << EntityNum;
+    EEntityType EnType;
+    foreach(MEntity * pEnt, view->GetEntityList()) {
+        EnType = (EEntityType)pEnt->GetType();
+        out << EnType;
+        switch (EnType) {
+        case EEntityType::etLine:
+            MLine* line = (MLine*)pEnt;
+            line->Serialize(out, true);
+            break;
+        }
+    }
+    std::cout << "文档保存成功." << '\n';
+    file.close();
+    return;
 }
 
 void MainWindow::zoomIn()
