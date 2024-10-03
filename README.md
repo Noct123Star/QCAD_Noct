@@ -4,7 +4,7 @@
 
 - 分支branch：master分支为未经修改的原始文件，实现功能分支的为"**保存-另存-读取-新建**"
 
-- 在visual studio中克隆项目：链接在"**<>Code**"中获取，即为 https://github.com/Noct123Star/QCAD_Noct.git  用克隆的方式获取项目，需要在打开项目后，在最上栏的:  **Git--管理分支**中，将实现功能的分支**签出**
+- 在visual studio中克隆项目：链接在"**<>Code**"中获取，即为 https://github.com/Noct123Star/QCAD_Noct.git    若用克隆的方式获取项目，需要在打开项目后，在最上栏的:  **Git--管理分支**中，将实现功能的分支**签出**
 - 直接下载项目的ZIP。注意下载时，所在分支branch不是**master**而是实现功能的"**保存-另存-读取-新建**"分支
 
 ## 1-4项基本功能实现描述
