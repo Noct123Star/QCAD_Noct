@@ -17,6 +17,12 @@ QCADView::QCADView()
 	m_penStyle = Qt::SolidLine;
 	m_penWidth = 1;
 	m_brushColor = QColor(255, 255, 255);
+
+	m_bEditable = true;
+	m_isModified = false;
+	m_nStartOperateNum = 0;
+	m_nOperations = 0;
+	m_nCurrentOperation = 0;
 }
 
 QCADView::~QCADView()
@@ -111,9 +117,47 @@ void QCADView::mouseDoubleClickEvent(QMouseEvent* mouseEvent)
 	}
 }
 
+bool QCADView::isModified() const
+{
+	return m_isModified;
+}
+
+void QCADView::SetModifiedFlag(bool bModified)
+{
+	m_isModified = bModified;
+	if (bModified) 
+	{
+		// 遍历m_EntityList  
+		for (auto& pEntity : m_EntityList) 
+		{
+			MEntity* pShowEntity = pEntity->GetCurrentEnt();
+			if (pShowEntity != nullptr) 
+			{
+				MEntity* pNext = pShowEntity->next;
+				while (pNext) 
+				{
+					MEntity* pTmp = pNext;
+					pNext = pNext->next;
+					delete pTmp; // 手动删除，假设没有使用智能指针  
+				}
+				pShowEntity->next = nullptr;
+			}
+			else 
+			{
+				pEntity->m_nOperationNum = 0;
+			}
+		}
+		m_nCurrentOperation++;
+		m_nOperations = m_nCurrentOperation;
+	}
+}
+
 void QCADView::addEntity(MEntity* pEnt)
 {
 	m_EntityList.push_back(pEnt);
+	// 设置修改
+	SetModifiedFlag(true);
+	pEnt->m_nOperationNum = m_nCurrentOperation;
 }
 
 void QCADView::clearList()
@@ -140,6 +184,10 @@ void QCADView::drawLine()
 
 	delete m_pCmd;
 	m_pCmd = new MCreateLine(this);
+	if (m_pCmd != nullptr)
+	{
+		SetModifiedFlag(true);
+	}
 }
 
 void QCADView::selectEntity()

@@ -218,3 +218,170 @@ m_sFileName = tr("untitled.cad");
 setWindowTitle(tr("QCAD - %1").arg(m_sFileName));
 ```
 
+## 文件被修改标记，退出提醒保存
+### 设置修改标志
+1. 在`QCADView.h`中添加`m_isModified`成员变量，并在构造函数中初始化为`false`。
+
+```c++
+private:
+    bool m_isModified;
+```
+
+```c++
+QCADView::QCADView()
+{
+    m_isModified = false;
+}
+```
+2. 构造修改变量函数SetModifiedFlag()以及查询变量函数isModified()。
+```c++
+void QCADView::SetModifiedFlag(bool bModified)
+{
+	m_isModified = bModified;
+	if (bModified) 
+	{
+		// 遍历m_EntityList  
+		for (auto& pEntity : m_EntityList) 
+		{
+			MEntity* pShowEntity = pEntity->GetCurrentEnt();
+			if (pShowEntity != nullptr) 
+			{
+				MEntity* pNext = pShowEntity->next;
+				while (pNext) 
+				{
+					MEntity* pTmp = pNext;
+					pNext = pNext->next;
+					delete pTmp; // 手动删除，假设没有使用智能指针  
+				}
+				pShowEntity->next = nullptr;
+			}
+			else 
+			{
+				pEntity->m_nOperationNum = 0;
+			}
+		}
+		m_nCurrentOperation++;
+		m_nOperations = m_nCurrentOperation;
+	}
+}
+
+bool QCADView::isModified() const
+{
+	return m_isModified;
+}
+```
+### 对应操作位置设置修改标志
+在`mainwindow.cpp`中，对新建、打开、保存、另存等操作位置设置修改标志。
+``` c++
+void MainWindow::newFile()
+{
+    ...
+    // 设置未修改
+    view->SetModifiedFlag(false);
+}
+
+void MainWindow::openFile()
+{
+    ...
+    // 设置未修改
+    view->SetModifiedFlag(false);
+}
+
+void MainWindow::saveFile()
+{
+    ...
+    // 设置未修改
+    view->SetModifiedFlag(false);
+}
+
+void MainWindow::saveAsFile()
+{
+    ...
+    // 设置未修改
+    view->SetModifiedFlag(false);
+}
+```
+在`QCADView.cpp`中，对绘制直线操作设置修改标志
+``` c++
+void QCADView::drawLine()
+{
+	//QPainter pDC(this);
+
+	if (m_pCmd && m_pCmd->GetType() == ctCreateLine)
+		return;
+
+	delete m_pCmd;
+	m_pCmd = new MCreateLine(this);
+	if (m_pCmd != nullptr)
+	{
+		SetModifiedFlag(true);
+	}
+}
+```
+### 重写退出操作槽函数以及closeEvent函数
+重定义退出操作的槽函数`exitEvent()`
+```c++
+void MainWindow::createActions()
+{
+    ...
+    exitAction = new QAction(QIcon("images/exit.png"), tr("E&xit"), this);
+    exitAction->setShortcuts(QKeySequence::Quit);
+    exitAction->setStatusTip(tr("Quit Scenediagram example"));
+    connect(exitAction, SIGNAL(triggered()), this, SLOT(exitWindow()));
+}
+void MainWindow::exitWindow()
+{
+    if (view->isModified())
+    {
+        QMessageBox::StandardButton ret;
+        ret = QMessageBox::warning(this, tr("QCAD"),
+            tr("The file has been changed.\n"
+                "Do you want to save?"),
+            QMessageBox::Save | QMessageBox::Discard | QMessageBox::Cancel);
+        switch (ret) {
+        case QMessageBox::Save:
+            saveFile(); // 调用保存函数
+            QWidget::close();
+            break;
+        case QMessageBox::Cancel:
+            QWidget::close();
+            break;
+        default: // Discard
+            break;
+        }
+    }
+    else
+    {
+        QWidget::close();
+    }
+}
+```
+重定义`closeEvent()`函数
+```c++
+void MainWindow::closeEvent(QCloseEvent* event)
+{
+    if (view->isModified())
+    {
+        QMessageBox::StandardButton ret;
+        ret = QMessageBox::warning(this, tr("QCAD"),
+            tr("The file has been changed.\n"
+                "Do you want to save?"),
+            QMessageBox::Save | QMessageBox::Discard | QMessageBox::Cancel);
+        switch (ret) {
+        case QMessageBox::Save:
+            saveFile(); // 调用保存函数
+            QWidget::close();
+            break;
+        case QMessageBox::Cancel:
+            QWidget::close();
+            break;
+        default: // Discard
+            break;
+        }
+    }
+    else
+    {
+        QWidget::close();
+    }
+}
+```

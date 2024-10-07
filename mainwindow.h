@@ -34,6 +34,9 @@ class MainWindow : public QMainWindow
 public:
    MainWindow();
 
+protected:
+    void closeEvent(QCloseEvent* event) override;
+
 public slots:
    //—°‘Ò√¸¡Ó...
    void selectEntity();
@@ -58,6 +61,9 @@ private slots:
     void handleFontChange();
     void itemSelected(QGraphicsItem *item);
     void about();
+
+    // 
+    void exitWindow();
 
     //file
     void newFile();

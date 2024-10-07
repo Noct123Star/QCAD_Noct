@@ -25,6 +25,33 @@ void Prompt(QString sInfo)
     pMain->statusBar()->showMessage(sInfo);
 }
 
+void MainWindow::closeEvent(QCloseEvent* event)
+{
+    if (view->isModified())
+    {
+        QMessageBox::StandardButton ret;
+        ret = QMessageBox::warning(this, tr("QCAD"),
+            tr("The file has been changed.\n"
+                "Do you want to save?"),
+            QMessageBox::Save | QMessageBox::Discard | QMessageBox::Cancel);
+        switch (ret) {
+        case QMessageBox::Save:
+            saveFile(); // 调用保存函数
+            QWidget::close();
+            break;
+        case QMessageBox::Cancel:
+            QWidget::close();
+            break;
+        default: // Discard
+            break;
+        }
+    }
+    else
+    {
+        QWidget::close();
+    }
+}
+
 //! [0]
 MainWindow::MainWindow()
 {
@@ -577,7 +604,7 @@ void MainWindow::createActions()
     exitAction = new QAction(QIcon("images/exit.png"), tr("E&xit"), this);
     exitAction->setShortcuts(QKeySequence::Quit);
     exitAction->setStatusTip(tr("Quit Scenediagram example"));
-    connect(exitAction, SIGNAL(triggered()), this, SLOT(close()));
+    connect(exitAction, SIGNAL(triggered()), this, SLOT(exitWindow()));
 
     boldAction = new QAction(tr("Bold"), this);
     boldAction->setCheckable(true);
@@ -867,6 +894,33 @@ QIcon MainWindow::createColorIcon(QColor color)
 }
 //! [32]
 
+void MainWindow::exitWindow()
+{
+    if (view->isModified())
+    {
+        QMessageBox::StandardButton ret;
+        ret = QMessageBox::warning(this, tr("QCAD"),
+            tr("The file has been changed.\n"
+                "Do you want to save?"),
+            QMessageBox::Save | QMessageBox::Discard | QMessageBox::Cancel);
+        switch (ret) {
+        case QMessageBox::Save:
+            saveFile(); // 调用保存函数
+            QWidget::close();
+            break;
+        case QMessageBox::Cancel:
+            QWidget::close();
+            break;
+        default: // Discard
+            break;
+        }
+    }
+    else
+    {
+        QWidget::close();
+    }
+}
+
 void MainWindow::newFile()
 {
     //单文档吧
@@ -905,6 +959,8 @@ void MainWindow::newFile()
     //设置文档名untitled.cad，标题改变
     m_sFileName = tr("untitled.cad");
     setWindowTitle(tr("QCAD - %1").arg(m_sFileName));
+    // 设置未修改
+    view->SetModifiedFlag(false);
 }
 
 void MainWindow::openFile()
@@ -974,6 +1030,9 @@ void MainWindow::openFile()
     QString stitle = tr("QCAD - ");
     stitle += m_sFileName;
     setWindowTitle(stitle);
+
+    // 设置未修改
+    view->SetModifiedFlag(false);
 }
 
 void MainWindow::saveFile()
@@ -1015,6 +1074,8 @@ void MainWindow::saveFile()
     std::cout << "文档保存成功." << '\n';
     // 以上为修改内容
     file.close();
+    // 设置未修改
+    view->SetModifiedFlag(false);
     return;
 
     //out.setVersion(QDataStream::Qt_6_3);
@@ -1113,6 +1174,8 @@ void MainWindow::saveAsFile()
     }
     std::cout << "文档保存成功." << '\n';
     file.close();
+    // 设置未修改
+    view->SetModifiedFlag(false);
     return;
 }
 

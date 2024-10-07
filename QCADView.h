@@ -12,6 +12,7 @@ private:
     QList<MEntity*> m_EntityList;
     QList<MEntity*> m_SelectEntityList;
     MCommand* m_pCmd;
+    int	m_nStartOperateNum; // 起始操作位置
 
 public:
     QCADView();
@@ -29,6 +30,16 @@ public:
     void clearList();
     void drawLine();
     void selectEntity();
+
+private:
+    bool m_isModified; // 修改标记
+
+public:
+    bool m_bEditable;
+    int  m_nOperations;
+    int	 m_nCurrentOperation;
+    bool isModified()const;
+    void SetModifiedFlag(bool bModified = true);
 
 private:
     QColor m_lineColor;
